@@ -1,4 +1,3 @@
-#python 3.7.1
 import sys
 
 class level:
@@ -6,6 +5,7 @@ class level:
 		self.width = width
 		self.height = height
 		self.cells = [x%5 for x in range(width*height)]
+		self.tempcells = list(self.cells)
 	def index(self, x, y):
 		if x < 0 or y < 0 or x >= self.width or y >= self.height:
 			return None
@@ -20,21 +20,24 @@ class level:
 		for i in range(len(self.cells)):
 			if self.cells[i] > 3:
 				self.topple(i%self.width, i//self.width)
+		if self.cells != self.tempcells:
+			self.cells = list(self.tempcells)
+			self.tick()
 	def topple(self,x,y):
 		cell = self.index(x,y)
 		pileHeight = self.cells[cell]
 		grainsMoving = pileHeight//4
-		self.cells[cell] = pileHeight%4
+		self.tempcells[cell] -= grainsMoving*4
 		for neighbor in self.neighbors(x,y):
-			if neighbor:
-				self.cells[neighbor] += grainsMoving
+			if neighbor != None:
+				self.tempcells[neighbor] += grainsMoving
 	def display(self):
 		for y in range(self.height):
 			row = self.cells[y*self.width:(y+1)*self.width]
 			sys.stdout.write(str(row)+"\n")
 
-#x=level(4,4)
-#x.display()
-#print("\n")
-#x.tick()
-#x.display()
+x=level(4,4)
+x.display()
+print("\n")
+x.tick()
+x.display()
