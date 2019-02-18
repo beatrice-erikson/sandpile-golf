@@ -1,6 +1,19 @@
 import sys
 
 class level:
+	def __init__(self,width,height,depth):
+		self.width = width
+		self.height = height
+		self.depth = depth
+		self.layers = [layer(width,height) for _ in range(depth)]
+	def tick(self):
+		for layer in self.layers:
+			layer.tick()
+	def display(self):
+		for layer in self.layers:
+			layer.display()
+			sys.stdout.write("\n")
+class layer:
 	def __init__(self, width, height):
 		self.width = width
 		self.height = height
@@ -18,7 +31,7 @@ class level:
 		return [up,down,left,right]
 	def tick(self):
 		for i in range(len(self.cells)):
-			if self.cells[i] > 3:
+			if self.cells[i] != None and self.cells[i] > 3:
 				self.topple(i%self.width, i//self.width)
 		if self.cells != self.tempcells:
 			self.cells = list(self.tempcells)
@@ -34,9 +47,11 @@ class level:
 	def display(self):
 		for y in range(self.height):
 			row = self.cells[y*self.width:(y+1)*self.width]
-			sys.stdout.write(str(row)+"\n")
+			row = " ".join("{0}".format(c) for c in row) + "\n"
+			sys.stdout.write(row)
 
-x=level(4,4)
+
+x=level(4,4,4)
 x.display()
 print("\n")
 x.tick()
