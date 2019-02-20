@@ -21,12 +21,17 @@ class level:
 		for layer in self.layers:
 			layer.display()
 			sys.stdout.write("\n")
-		
+
+class tile:
+	def __init__(self, sandGrains):
+		self.traveledTo = False
+		self.sand = sandGrains
+
 class layer:
 	def __init__(self, width, height):
 		self.width = width
 		self.height = height
-		self.tiles = [x%5 for x in range(width*height)]
+		self.tiles = [tile(x%5) for x in range(width*height)]
 		self.temptiles = list(self.tiles)
 	
 	def index(self, x, y):
@@ -43,7 +48,7 @@ class layer:
 	
 	def tick(self):
 		for i in range(len(self.tiles)):
-			if self.tiles[i] != None and self.tiles[i] > 3:
+			if self.tiles[i] != None and self.tiles[i].sand > 3:
 				self.topple(i%self.width, i//self.width)
 		if self.tiles != self.temptiles:
 			self.tiles = list(self.temptiles)
@@ -51,25 +56,25 @@ class layer:
 	
 	def topple(self,x,y):
 		tile = self.index(x,y)
-		pileHeight = self.tiles[tile]
+		pileHeight = self.tiles[tile].sand
 		grainsMoving = pileHeight//4
-		self.temptiles[tile] -= grainsMoving*4
+		self.temptiles[tile].sand -= grainsMoving*4
 		for neighbor in self.neighbors(x,y):
 			if neighbor != None:
-				self.temptiles[neighbor] += grainsMoving
+				self.temptiles[neighbor].sand += grainsMoving
 	
 	def add(self,x,y,z,grains):
 		tile = self.index(x,y)
 		if not self.tiles[tile]:
 			return "tile out of bounds"
-		self.tiles[tile] += grains
-		self.temptiles[tile] += grains
+		#self.tiles[tile].sand += grains
+		self.temptiles[tile].sand += grains
 		return "added {0} grains of sand to tile {1}, {2} of layer {3}".format(grains,x,y,z)
 
 	def display(self):
 		for y in range(self.height):
 			row = self.tiles[y*self.width:(y+1)*self.width]
-			row = " ".join("{0}".format(c) for c in row) + "\n"
+			row = " ".join("{0}".format(c.sand) for c in row) + "\n"
 			sys.stdout.write(row)
 
 class gameController:
