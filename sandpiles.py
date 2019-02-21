@@ -1,5 +1,6 @@
 import sys
 import string
+import copy
 
 class level:
 	def __init__(self,width,height,depth):
@@ -26,13 +27,15 @@ class tile:
 	def __init__(self, sandGrains):
 		self.traveledTo = False
 		self.sand = sandGrains
+	def __eq__(self, other):
+		return other and self.sand == other.sand
 
 class layer:
 	def __init__(self, width, height):
 		self.width = width
 		self.height = height
-		self.tiles = [tile(x%5) for x in range(width*height)]
-		self.temptiles = list(self.tiles)
+		self.tiles = [tile(0) for _ in range(width*height)]
+		self.temptiles = copy.deepcopy(self.tiles)
 	
 	def index(self, x, y):
 		if x < 0 or y < 0 or x >= self.width or y >= self.height:
@@ -50,9 +53,12 @@ class layer:
 		for i in range(len(self.tiles)):
 			if self.tiles[i] != None and self.tiles[i].sand > 3:
 				self.topple(i%self.width, i//self.width)
-		if self.tiles != self.temptiles:
-			self.tiles = list(self.temptiles)
-			self.tick()
+		if self.tiles == self.temptiles:
+			return
+			#This being here instead of in level.tick() is critical to holes working,
+			#depositing all toppled sand at once instead of interspersed with topples on lower layers
+		self.tiles = copy.deepcopy(self.temptiles)
+		self.tick()
 	
 	def topple(self,x,y):
 		tile = self.index(x,y)
@@ -71,11 +77,15 @@ class layer:
 		self.temptiles[tile].sand += grains
 		return "added {0} grains of sand to tile {1}, {2} of layer {3}".format(grains,x,y,z)
 
-	def display(self):
+	def display(self, temp=False):
 		for y in range(self.height):
-			row = self.tiles[y*self.width:(y+1)*self.width]
+			if temp:
+				row = self.temptiles[y*self.width:(y+1)*self.width]
+			else:
+				row = self.tiles[y*self.width:(y+1)*self.width]
 			row = " ".join("{0}".format(c.sand) for c in row) + "\n"
 			sys.stdout.write(row)
+		sys.stdout.write("display" + str(temp))
 
 class gameController:
 	def getInput(self, table):
@@ -104,7 +114,7 @@ class gameController:
 		else:
 			print("Invalid command, type \"help\" for a list of valid commands")
 
-table=level(4,4,3)
+table=level(11,11,1)
 controller = gameController()
 
 while True:
